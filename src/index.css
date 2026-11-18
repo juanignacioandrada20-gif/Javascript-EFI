@@ -1,0 +1,42 @@
+/*
+SITEC — GUÍA DE DEFENSA (comentarios de estudio, no cambian la lógica)
+ARCHIVO: src/index.css
+FUNCIÓN GENERAL: Importa Tailwind y define paleta personalizada SITEC en @theme.
+PARA EXPLICAR AL PROFESOR: Las clases bg-sitec-* usan colores centralizados.
+
+EXPLICACIÓN DE LAS LÍNEAS DEL CÓDIGO ORIGINAL:
+Línea 1: Importa Tailwind y sus estilos/utilidades.
+Línea 4: Tailwind v4: declara variables del tema usadas por las clases personalizadas.
+FIN DE LA GUÍA. Debajo está el código original sin modificar.
+*/
+@import "tailwindcss";
+
+/* Paleta y tipografía del SITEC (ITEC Río Cuarto) */
+@theme {
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* Barra superior y menú lateral */
+  --color-sitec-top: #333333;
+  --color-sitec-side: #2b2b2b;
+  --color-sitec-item: #343a40;
+  --color-sitec-sub: #3b4046;
+  --color-sitec-line: #23272b;
+  --color-sitec-text: #d6d6d6;
+
+  /* Bordó del ítem activo */
+  --color-sitec-rojo: #7b1e1e;
+  --color-sitec-rojo-2: #962626;
+
+  /* Barras de materias y estados */
+  --color-sitec-barra: #343a40;
+  --color-sitec-gris: #7d7f82;
+  --color-sitec-amarillo: #e0b014;
+
+  /* Fondo del contenido */
+  --color-sitec-bg: #f5f5f5;
+}
+
+body {
+  background-color: var(--color-sitec-bg);
+  font-size: 14px;
+}

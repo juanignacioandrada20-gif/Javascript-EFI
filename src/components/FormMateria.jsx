@@ -1,0 +1,202 @@
+/*
+SITEC — GUÍA DE DEFENSA (comentarios de estudio, no cambian la lógica)
+ARCHIVO: src/components/FormMateria.jsx
+FUNCIÓN GENERAL: Formulario controlado de alta de materia con validaciones y POST.
+PARA EXPLICAR AL PROFESOR: useState controla inputs; validate verifica; handleSubmit crea materia vía API.
+
+EXPLICACIÓN DE LAS LÍNEAS DEL CÓDIGO ORIGINAL:
+Línea 1: Importación: trae funciones/componentes de otro módulo para reutilizarlos.
+Línea 2: Importación: trae funciones/componentes de otro módulo para reutilizarlos.
+Línea 3: Importación: trae funciones/componentes de otro módulo para reutilizarlos.
+Línea 16: Define la función/componente FormMateria: Formulario controlado de alta de materia con validaciones y POST.
+Línea 17: useState crea el estado «form» (valores de los campos del formulario) y «setForm» para actualizarlo.
+Línea 18: useState crea el estado «errors» (errores de validación por campo) y «setErrors» para actualizarlo.
+Línea 19: useState crea el estado «enviando» (si se está enviando el formulario) y «setEnviando» para actualizarlo.
+Línea 20: useState crea el estado «mensaje» (resultado de creación/error) y «setMensaje» para actualizarlo.
+Línea 22: Actualiza el estado de un formulario controlado usando name y value del evento.
+Línea 24: El operador ... (spread) copia/expande elementos; ayuda a crear un estado nuevo sin mutar el anterior.
+Línea 27: Comprueba requisitos del formulario y devuelve objeto de errores.
+Línea 31: Condición if: ejecuta el bloque/devolución únicamente si se cumple esta comprobación.
+Línea 36: Condición if: ejecuta el bloque/devolución únicamente si se cumple esta comprobación.
+Línea 39: some responde true si al menos un elemento cumple la condición.
+Línea 42: Condición if: ejecuta el bloque/devolución únicamente si se cumple esta comprobación.
+Línea 44: Condición if: ejecuta el bloque/devolución únicamente si se cumple esta comprobación.
+Línea 49: Previene recarga de página, valida, envía a API y muestra resultado.
+Línea 50: Evita que el navegador envíe el formulario y recargue la página.
+Línea 55: Obtiene las claves del objeto; length permite contar cuántos errores hubo.
+Línea 58: Intenta una operación que puede fallar; el error se maneja en catch.
+Línea 59: Espera la respuesta del POST a la API.
+Línea 69: Captura fallos del servidor, validación o almacenamiento.
+Línea 71: Se ejecuta al terminar, incluso si hubo error: útil para quitar el indicador de envío/carga.
+Línea 76: return entrega el resultado o JSX que React renderizará.
+Línea 77: Formulario controlado: onSubmit ejecuta handleSubmit.
+Línea 78: className aplica clases Tailwind: colores, márgenes, tipografía y disposición responsive.
+Línea 81: Campo del formulario: muestra valor del estado y recibe cambios del usuario.
+Línea 84: value vincula el campo al estado del formulario (input controlado).
+Línea 85: onChange actualiza el estado cuando cambia un input/select/checkbox.
+Línea 88: className aplica clases Tailwind: colores, márgenes, tipografía y disposición responsive.
+Línea 90: className aplica clases Tailwind: colores, márgenes, tipografía y disposición responsive.
+Línea 94: Campo del formulario: muestra valor del estado y recibe cambios del usuario.
+Línea 97: value vincula el campo al estado del formulario (input controlado).
+Línea 98: onChange actualiza el estado cuando cambia un input/select/checkbox.
+Línea 100: className aplica clases Tailwind: colores, márgenes, tipografía y disposición responsive.
+Línea 104: className aplica clases Tailwind: colores, márgenes, tipografía y disposición responsive.
+Línea 106: onChange actualiza el estado cuando cambia un input/select/checkbox.
+Línea 115: onChange actualiza el estado cuando cambia un input/select/checkbox.
+Línea 124: onChange actualiza el estado cuando cambia un input/select/checkbox.
+Línea 126: map transforma cada elemento en otro (por ejemplo, crear una tarjeta JSX por materia).
+Línea 127: key permite a React identificar establemente cada elemento de una lista.
+Línea 134: className aplica clases Tailwind: colores, márgenes, tipografía y disposición responsive.
+Línea 139: Botón interactivo de la interfaz, asociado a acción/función.
+Línea 141: disabled impide pulsar mientras está enviando o faltan datos.
+Línea 142: className aplica clases Tailwind: colores, márgenes, tipografía y disposición responsive.
+FIN DE LA GUÍA. Debajo está el código original sin modificar.
+*/
+import { useState } from "react"
+import { createMateria } from "../services/api"
+import CampoForm, { inputStyle } from "./CampoForm"
+
+const FORM_INICIAL = {
+  nombre_materia: "",
+  codigo: "",
+  anio: "",
+  cuatrimestral: "false",
+  carrera_id: "",
+}
+
+// Letras (con tildes y ñ), números, espacios, puntos y guiones
+const FORMATO_NOMBRE = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü0-9 .-]+$/
+
+export default function FormMateria({ materias, carreras, onCreada }) {
+  const [form, setForm] = useState(FORM_INICIAL)
+  const [errors, setErrors] = useState({})
+  const [enviando, setEnviando] = useState(false)
+  const [mensaje, setMensaje] = useState(null)
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const validate = () => {
+    const newErrors = {}
+    const nombre = form.nombre_materia.trim()
+
+    if (!nombre) newErrors.nombre_materia = "El nombre es obligatorio"
+    else if (nombre.length < 3) newErrors.nombre_materia = "Debe tener al menos 3 caracteres"
+    else if (nombre.length > 50) newErrors.nombre_materia = "Puede tener como máximo 50 caracteres"
+    else if (!FORMATO_NOMBRE.test(nombre)) newErrors.nombre_materia = "Solo letras, números, espacios, puntos y guiones"
+
+    if (form.codigo === "") newErrors.codigo = "El código es obligatorio"
+    else if (!Number.isInteger(Number(form.codigo)) || Number(form.codigo) < 0 || Number(form.codigo) > 9999)
+      newErrors.codigo = "Debe ser un número entero entre 0 y 9999"
+    else if (materias.some((m) => m.codigo === Number(form.codigo)))
+      newErrors.codigo = "Ya existe una materia con ese código"
+
+    if (!form.anio) newErrors.anio = "Elegí el año"
+
+    if (carreras.length > 0 && !form.carrera_id) newErrors.carrera_id = "Elegí la carrera"
+
+    return newErrors
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setMensaje(null)
+
+    const newErrors = validate()
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length > 0) return
+
+    setEnviando(true)
+    try {
+      const creada = await createMateria({
+        nombre_materia: form.nombre_materia.trim(),
+        codigo: Number(form.codigo),
+        anio: Number(form.anio),
+        cuatrimestral: form.cuatrimestral === "true",
+        carrera_id: form.carrera_id ? Number(form.carrera_id) : null,
+      })
+      setMensaje({ tipo: "ok", texto: `Materia "${creada.nombre_materia}" creada` })
+      setForm(FORM_INICIAL)
+      onCreada()
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: err.message })
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} noValidate className="bg-white border border-zinc-200 p-6 ">
+      <h2 className="text-lg text-zinc-800">Nueva materia</h2>
+
+      <CampoForm label="Nombre" error={errors.nombre_materia}>
+        <input
+          type="text"
+          name="nombre_materia"
+          value={form.nombre_materia}
+          onChange={handleChange}
+          maxLength={50}
+          placeholder="Ej: Programación 2"
+          className={inputStyle}
+        />
+        <p className="text-xs text-zinc-500 mt-1 text-right">{form.nombre_materia.length}/50</p>
+      </CampoForm>
+
+      <CampoForm label="Código" error={errors.codigo}>
+        <input
+          type="number"
+          name="codigo"
+          value={form.codigo}
+          onChange={handleChange}
+          placeholder="Ej: 201"
+          className={inputStyle}
+        />
+      </CampoForm>
+
+      <div className="grid grid-cols-2 gap-4">
+        <CampoForm label="Año" error={errors.anio}>
+          <select name="anio" value={form.anio} onChange={handleChange} className={inputStyle}>
+            <option value="">Elegir...</option>
+            <option value="1">1° año</option>
+            <option value="2">2° año</option>
+            <option value="3">3° año</option>
+          </select>
+        </CampoForm>
+
+        <CampoForm label="Duración">
+          <select name="cuatrimestral" value={form.cuatrimestral} onChange={handleChange} className={inputStyle}>
+            <option value="false">Anual</option>
+            <option value="true">Cuatrimestral</option>
+          </select>
+        </CampoForm>
+      </div>
+
+      {carreras.length > 0 && (
+        <CampoForm label="Carrera" error={errors.carrera_id}>
+          <select name="carrera_id" value={form.carrera_id} onChange={handleChange} className={inputStyle}>
+            <option value="">Elegir...</option>
+            {carreras.map((c) => (
+              <option key={c.id} value={c.id}>{c.nombre}</option>
+            ))}
+          </select>
+        </CampoForm>
+      )}
+
+      {mensaje && (
+        <p className={`mt-4 text-sm ${mensaje.tipo === "ok" ? "text-zinc-800 font-semibold" : "text-red-600"}`}>
+          {mensaje.texto}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={enviando}
+        className="bg-sitec-rojo hover:bg-sitec-rojo-2 text-white font-semibold w-full mt-6 py-3 cursor-pointer disabled:opacity-50"
+      >
+        {enviando ? "Guardando..." : "Guardar materia"}
+      </button>
+    </form>
+  )
+}
